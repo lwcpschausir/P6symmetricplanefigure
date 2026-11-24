@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a1513">
+<title>對稱軸挑戰</title>
+<style>
+:root{color-scheme:dark;--ink:#eef7ec;--soft:#b3c6b9;--mint:#b4f8b7;--line:#34483e;--mono:ui-monospace,"SFMono-Regular",Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% 35%,#15261e 0,#0c1814 55%,#09130f 100%);color:var(--ink);font:16px/1.5 "PingFang HK","Noto Sans CJK HK","Microsoft JhengHei",system-ui,sans-serif;min-height:100vh;min-height:100svh;-webkit-text-size-adjust:100%}
+header,main{width:min(1120px,calc(100% - clamp(32px,9vw,140px)));margin:auto}
+header{height:clamp(65px,9vh,88px);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #2b3d31}
+.brand,.progress,.caption,.eyebrow,.tools,.board-tag,.status,.cue,.legend,.score-label{display:flex;align-items:center}
+.brand{gap:13px;font-weight:750;letter-spacing:.08em;font-size:clamp(19px,2.2vw,25px)}.logo{width:39px;height:39px}
+.progress{gap:14px;color:var(--soft);font-size:14px}.progress b{font:600 15px var(--mono);color:var(--ink)}
+#bars{display:flex;gap:4px}#bars i{width:14px;height:5px;background:#324738;border-radius:4px}#bars .current{background:#bcf6a9}#bars .passed{background:#67ac7a}
+.intro{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:clamp(19px,3.2vh,35px) 0 clamp(17px,2.8vh,28px)}
+.eyebrow{gap:9px;color:#b5e5ab;font-size:13px;font-weight:650;letter-spacing:.11em}.eyebrow svg{width:16px;height:16px}.eyebrow b{font:600 14px var(--mono)}
+h1{margin:.06em 0 .04em;font-size:clamp(32px,4.2vw,54px);letter-spacing:.06em;line-height:1.38}
+.intro p{margin:0;color:var(--soft);font-size:clamp(15px,1.6vw,18px)}
+.score{text-align:right;flex-shrink:0}.score-label{justify-content:flex-end;gap:7px;color:var(--soft);font-size:14px}.score-label svg{width:17px;height:17px}.score output{font:500 clamp(34px,4.8vw,61px)/1.16 var(--mono);letter-spacing:-.07em;color:#c0eab1;font-variant-numeric:tabular-nums}.score small{font:500 clamp(18px,2.2vw,27px) var(--mono);color:#92b88d;margin-left:4px}
+.board{position:relative;height:clamp(300px,54vh,570px);height:clamp(300px,54svh,570px);border:1px solid #3e5945;border-radius:24px;overflow:hidden;isolation:isolate;background:radial-gradient(ellipse at 48% 56%,#183c2b 0%,#10291e 47%,#0b1d16 82%);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}#art{pointer-events:none}#game{cursor:crosshair}
+.board-tag,.status,.cue,.legend{position:absolute;pointer-events:none;z-index:1}.board-tag,.status{top:19px;font-size:13px;letter-spacing:.05em}.board-tag{left:23px;gap:8px;color:#a9c2ac}.board-tag svg{width:17px;height:17px}.status{right:23px;color:#c6d7c4;gap:8px}.status:before{content:"";background:#a6ee94;width:6px;height:6px;border-radius:50%;box-shadow:0 0 9px #a2f38a}
+.cue,.legend{bottom:19px;left:50%;transform:translateX(-50%);white-space:nowrap;background:#10251deb;border:1px solid #3a5542;border-radius:20px;padding:7px 15px;font-size:14px;gap:9px;color:#dae9d9}.cue svg{width:17px;height:17px;color:#b4f8b7}.legend{gap:14px}.legend span{display:flex;gap:5px;align-items:center}.swatch{width:10px;height:10px;border-radius:3px;display:inline-block}
+.board.complete .cue{top:50%;bottom:auto;transform:translate(-50%,-50%);font-size:clamp(18px,3vw,30px);padding:.7em 1em}.board.complete .cue svg{display:none}
+.tools{justify-content:space-between;gap:10px;margin:18px 0 12px}.left{display:flex;gap:10px}button{line-height:1.3;font-family:inherit;font-size:16px;font-weight:600;color:#e2eadd;background:#17271f;border:1px solid #3c5141;border-radius:13px;min-height:49px;padding:0 19px;display:inline-flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;touch-action:manipulation}button svg{width:19px;height:19px}button:hover:enabled{filter:brightness(1.14)}button:active:enabled{transform:translateY(1px)}button:focus-visible{outline:3px solid #ffd089;outline-offset:3px}button:disabled{color:#85998a;background:#132019;border-color:#2c3c30;cursor:default}button[aria-pressed=true]{color:#ffe19e;border-color:#b6a168}.primary{color:#142c1d;background:#b5efaa;border-color:#b5efaa;padding:0 27px}
+.foot{display:flex;align-items:center;gap:8px;color:#9dab9e;font-size:13px;margin:14px 0 18px}.foot svg{width:15px;height:15px;flex:none}
+svg.ic{fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+[hidden]{display:none!important}.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+@media(orientation:portrait) and (min-width:601px){.board{height:58vh;height:58svh}.intro{margin:32px 0}.tools{margin-top:22px}}
+@media(max-width:620px){header,main{width:calc(100% - 28px)}#bars{display:none}.progress{gap:7px}.brand{gap:8px}.logo{width:32px}.intro{align-items:flex-end}.intro p{max-width:15em;font-size:14px}.score-label{font-size:12px}.score-label svg{display:none}.board{border-radius:17px;height:49vh;height:49svh}.tools,.left{gap:6px}.tools button{font-size:13px;padding:0 10px;gap:4px}.tools svg{width:15px}.board-tag{left:15px}.status{right:15px}.foot{font-size:12px}}
+@media(max-height:640px) and (orientation:landscape){header{height:45px}.logo{width:29px}.intro{margin:8px 0}.intro h1{font-size:26px}.intro p{font-size:14px}.board{height:calc(100svh - 215px);min-height:165px}.tools{margin:8px 0}.tools button{min-height:44px}.foot{margin:4px 0}.cue,.legend{bottom:8px}.status,.board-tag{top:9px}}
+#chapter{border-left:1px solid #496453;padding-left:10px;color:#b7cbbe;font-weight:500}
+.choose{position:relative;display:inline-flex;align-items:center;min-height:44px;padding:0 13px;border:1px solid #425a49;border-radius:10px;color:#dceadb;background:#192c21;font-size:14px}
+.choose select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}.choose:focus-within{outline:2px solid #f3dfa4}
+@media(max-width:460px){.progress{font-size:0;gap:6px}.progress b{font-size:12px}.choose{padding:0 8px}.brand{font-size:17px}}
+</style>
+</head>
+<body>
+<svg aria-hidden="true" width="0" height="0" style="position:absolute"><defs>
+<symbol id="layers" viewBox="0 0 24 24"><path d="m3 9 9-5 9 5-9 5zM3 13l9 5 9-5M3 17l9 5 9-5"/></symbol>
+<symbol id="scoreicon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18m-4-9 2 2 5-5"/></symbol>
+<symbol id="frame" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><circle cx="12" cy="12" r="1"/></symbol>
+<symbol id="pen" viewBox="0 0 24 24"><path d="m4 20 1-5L16 4a2 2 0 0 1 4 4L9 19zM14 6l4 4"/></symbol>
+<symbol id="again" viewBox="0 0 24 24"><path d="M3 10a9 9 0 1 1 1 7M3 4v6h6"/></symbol>
+<symbol id="eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+<symbol id="nextIcon" viewBox="0 0 24 24"><path d="m6 5 10 7-10 7zM19 5v14"/></symbol>
+<symbol id="bulb" viewBox="0 0 24 24"><path d="M8 16c0-3-3-3.5-3-7a7 7 0 0 1 14 0c0 3.5-3 4-3 7zM9 20h6"/></symbol>
+</defs></svg>
+<header><div class="brand"><svg class="logo" viewBox="0 0 44 44" aria-hidden="true"><rect x="1" y="1" width="42" height="42" rx="12" fill="#1c3226" stroke="#48644b"/><g transform="rotate(25 22 22)"><path d="M20 7Q4 22 20 35Z" fill="#bef2a6"/><path d="M24 7Q40 22 24 35Z" fill="#6fc99b"/><path d="M22 5v34" stroke="#e2ffd1" stroke-dasharray="3 2"/></g></svg>對稱軸挑戰</div>
+<div class="progress">挑戰進度 <b id="progress">1 / 60</b><label class="choose"><span>選題 ⌄</span><select id="choose" aria-label="按主題選題"></select></label></div></header>
+<main>
+<section class="intro"><div><div class="eyebrow"><svg class="ic"><use href="#layers"/></svg>第 <b id="num">01</b> 關<span id="chapter">平面圖形</span></div><h1 id="title">長方形</h1><p id="instruction">畫一條直線，讓圖形對摺後完全重合。</p></div>
+<div class="score"><div class="score-label"><svg class="ic"><use href="#scoreicon"/></svg><span id="scoreName">對稱重合率</span></div><output id="score" aria-live="off">—</output><small id="unit">%</small></div></section>
+<div class="board" id="board">
+<canvas id="art" aria-hidden="true"></canvas><canvas id="game" aria-label="繪圖區，用手指或滑鼠拖出一條直線。"></canvas>
+<div class="board-tag"><svg class="ic"><use href="#frame"/></svg>繪圖區</div><div class="status" id="status">準備落筆</div>
+<div class="cue" id="cue"><svg class="ic"><use href="#pen"/></svg><span id="cueText">按住並拖出一條直線</span></div>
+<div class="legend" id="legend" hidden><span><i class="swatch" style="background:#66aca5"></i>只屬原圖</span><span><i class="swatch" style="background:#d79cbb"></i>只屬鏡像</span><span><i class="swatch" style="background:#bcf3a0"></i>重合</span></div></div>
+<div class="tools"><div class="left"><button id="retry" disabled><svg class="ic"><use href="#again"/></svg>再試一次</button><button id="hint" aria-pressed="false"><svg class="ic"><use href="#eye"/></svg><span>看一條正確對稱軸</span></button></div><button class="primary" id="next"><svg class="ic"><use href="#nextIcon"/></svg><span>下一題</span></button></div>
+<div class="foot"><svg class="ic"><use href="#bulb"/></svg><span id="note">找出任何一條對稱軸即可。重合率達 95% 就過關。</span></div><div class="sr" role="status" id="announce"></div>
+</main>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const TAU = Math.PI*2;
+// All coordinates are in the drawing's local coordinate system. Outline and
+// scoring share the same closed contours, including the cut-outs.
+const pt=(x,y)=>({x,y});
+function rotate(p,a){return pt(p.x*Math.cos(a)-p.y*Math.sin(a),p.x*Math.sin(a)+p.y*Math.cos(a))}
+function radial(count,radius,phase=-Math.PI/2){
+ return Array.from({length:count},(_,i)=>{const a=phase+TAU*i/count,r=typeof radius==='function'?radius(i,a):radius;return pt(r*Math.cos(a),r*Math.sin(a))})
+}
+function ellipse(rx,ry,cy=0){return radial(96,1).map(p=>pt(p.x*rx,p.y*ry+cy))}
+function star(n,r){return radial(2*n,i=>i%2?r:100)}
+// The compact outlines run from the top centre down the right edge.
+// Q adds a quadratic curve. Reflecting the half-outline gives identical sides.
+function outline(spec){
+ const tokens=spec.trim().split(/[ ,]+/);let j=0;
+ const read=()=>pt(Number(tokens[j++]),Number(tokens[j++]));
+ const half=[read()];
+ while(j<tokens.length){
+  if(tokens[j]!=='Q'){half.push(read());continue}
+  j++;const a=half[half.length-1],b=read(),c=read();
+  const steps=Math.max(3,Math.ceil((Math.hypot(a.x-b.x,a.y-b.y)+Math.hypot(b.x-c.x,b.y-c.y))/9));
+  for(let k=1;k<=steps;k++){const t=k/steps,s=1-t;half.push(pt(s*s*a.x+2*s*t*b.x+t*t*c.x,s*s*a.y+2*s*t*b.y+t*t*c.y))}
+ }
+ const poly=half.concat(half.slice(1,-1).reverse().map(p=>pt(-p.x,p.y)));
+ return poly.filter((p,i)=>{const a=poly[(i+poly.length-1)%poly.length],b=poly[(i+1)%poly.length];return Math.abs((p.x-a.x)*(b.y-p.y)-(p.y-a.y)*(b.x-p.x))>1e-8});
+}
+const shaped=(name,shape,deg=0,holes=[])=>({name,contours:[typeof shape==='string'?outline(shape):shape,...holes],deg});
+const chapters=[
+ {name:'平面圖形',items:[
+ shaped('長方形','0 -76 121 -76 121 76 0 76'),
+ shaped('正方形','0 -85 85 -85 85 85 0 85'),
+ shaped('等腰三角形','0 -96 87 96 0 96'),
+ shaped('正三角形',radial(3,105)),
+ {name:'圓形',radius:89,deg:0},
+ shaped('菱形','0 -100 68 0 0 100',24),
+ shaped('等腰梯形','0 -70 53 -70 107 70 0 70',-18),
+ shaped('正五邊形',radial(5,100),18),
+ shaped('正六邊形',radial(6,100),30),
+ shaped('橢圓形',ellipse(114,64),-29)
+ ]},
+ {name:'花草樹木',items:[
+ shaped('楓葉','0 -99 17 -63 31 -73 28 -25 54 -46 55 -31 88 -41 81 -15 99 -8 65 24 75 34 15 42 7 51 7 88 0 88',-16),
+ shaped('鬱金香','0 -55 26 -82 33 -59 60 -88 Q 76 -10 10 0 8 45 Q 31 17 64 10 Q 48 58 8 69 7 90 0 90'),
+ shaped('松樹','0 -98 48 -35 29 -35 67 9 43 9 85 55 16 55 16 91 0 91',19),
+ shaped('四葉草',radial(128,(i,a)=>71+25*Math.cos(4*a-Math.PI)+5*Math.cos(8*a)),12),
+ shaped('橡果','0 -96 8 -96 8 -77 Q 65 -80 83 -36 Q 89 -18 79 -14 72 -14 Q 68 58 14 78 0 94'),
+ shaped('銀杏葉','0 -44 Q 23 -103 71 -81 Q 104 -70 98 -37 Q 91 -4 64 12 Q 20 41 5 61 5 93 0 93',-25),
+ shaped('仙人掌','0 -97 Q 17 -97 17 -78 17 4 Q 40 2 40 -18 40 -38 Q 40 -52 53 -52 Q 65 -52 65 -38 65 -14 Q 66 25 17 31 17 83 0 83'),
+ shaped('荷花','0 -90 Q 21 -70 26 -43 Q 39 -59 53 -64 Q 58 -43 52 -20 Q 76 -38 91 -35 Q 91 36 38 56 Q 16 64 0 65',14),
+ shaped('蘑菇','0 -82 Q 66 -83 95 -10 Q 106 2 87 7 Q 55 15 24 8 Q 20 43 34 74 Q 40 91 0 92'),
+ shaped('鈴形花','0 -81 Q 51 -81 58 -32 Q 64 10 86 34 Q 82 45 66 44 44 65 24 47 0 78',-23)
+ ]},
+ {name:'動物剪影',items:[
+ shaped('蝴蝶','0 -43 Q 4 -46 6 -39 Q 40 -89 85 -78 Q 107 -32 54 -3 Q 99 2 77 48 Q 51 88 13 44 Q 6 77 0 85'),
+ shaped('蝙蝠','0 -44 14 -65 17 -38 Q 39 -67 99 -71 Q 82 -43 100 -17 Q 70 -24 57 8 Q 35 0 27 29 Q 10 30 0 64',-14),
+ shaped('貓頭','0 -45 Q 25 -48 39 -38 80 -77 75 -10 Q 96 58 28 73 Q 12 76 0 75'),
+ shaped('兔仔','0 -21 Q 8 -32 15 -34 Q 1 -100 19 -108 Q 42 -111 42 -37 Q 66 -16 63 22 Q 61 69 0 70',18),
+ shaped('螃蟹','0 -30 12 -32 16 -47 23 -45 23 -30 40 -23 59 -40 52 -63 63 -84 68 -58 82 -72 89 -56 80 -30 57 -14 53 -4 83 -13 94 -4 66 0 54 9 85 12 92 24 60 19 48 19 69 38 78 51 51 38 35 29 Q 18 45 0 44'),
+ shaped('海龜','0 -97 Q 23 -99 23 -74 16 -56 Q 29 -55 38 -42 Q 60 -68 87 -65 Q 83 -36 49 -16 Q 62 13 45 47 Q 67 47 73 69 Q 56 72 32 59 Q 22 73 9 76 0 93',-20),
+ shaped('蜻蜓','0 -85 Q 12 -86 13 -73 10 -62 Q 39 -90 88 -88 Q 103 -67 80 -55 24 -37 Q 67 -47 91 -30 Q 85 -5 51 -12 12 -24 Q 10 45 5 76 0 95',25),
+ shaped('燕子','0 -73 Q 15 -69 14 -52 Q 44 -28 104 -62 Q 86 -12 34 9 57 76 14 53 0 27'),
+ shaped('青蛙頭','0 -42 Q 13 -43 27 -44 Q 28 -74 54 -75 Q 85 -73 79 -38 Q 105 -11 88 26 Q 66 63 0 64',-16),
+ shaped('鯨魚尾','0 -19 Q 41 -61 103 -68 Q 103 -20 75 0 Q 46 18 21 26 Q 10 43 16 73 0 73')
+ ]},
+ {name:'生活物件',items:[
+ shaped('皇冠','0 -72 30 -30 85 -63 65 29 64 53 0 53'),
+ shaped('花瓶','0 -89 42 -89 42 -77 25 -73 Q 16 -31 53 -10 Q 89 17 60 64 37 84 37 91 0 91',21),
+ shaped('雨傘','0 -89 5 -81 Q 78 -79 99 -7 Q 76 -21 52 -3 Q 26 -22 4 -4 4 79 Q 4 84 0 84',-19),
+ shaped('沙漏','0 -92 66 -92 66 -77 56 -77 Q 54 -44 13 -5 Q 8 0 13 5 Q 54 44 56 77 66 77 66 92 0 92'),
+ shaped('獎盃','0 -83 54 -83 54 -70 94 -70 92 -40 Q 92 -6 48 4 Q 29 29 10 31 11 58 Q 13 68 37 72 39 85 0 85',0,[outline('0 -10 10 -10 Q 11 5 0 10').map(p=>pt(p.x+68,p.y-44)),outline('0 -10 10 -10 Q 11 5 0 10').map(p=>pt(-p.x-68,p.y-44))]),
+ shaped('燈泡','0 -93 Q 69 -93 70 -30 Q 72 -2 44 25 Q 29 40 28 55 30 58 30 65 25 68 25 80 12 83 8 90 0 90',-26),
+ shaped('鎖頭','0 -94 Q 54 -94 54 -43 54 -20 68 -20 68 80 Q 68 88 59 88 0 88',0,[outline('0 -73 Q 33 -73 33 -42 33 -20 0 -20'),outline('0 4 Q 17 4 15 18 Q 15 24 8 29 12 49 0 49')]),
+ shaped('恤衫','0 -64 Q 16 -66 24 -82 57 -73 100 -37 75 -6 54 -19 54 83 0 83',16),
+ shaped('燭台','0 -94 Q 25 -68 12 -51 Q 9 -47 4 -46 4 -39 19 -39 19 35 49 35 Q 47 48 12 52 12 62 Q 25 76 55 80 55 89 0 89'),
+ shaped('手鈴','0 -96 Q 12 -96 12 -81 9 -48 Q 45 -40 48 -7 Q 53 30 76 39 76 48 18 48 Q 18 68 0 69',24)
+ ]},
+ {name:'建築與交通',items:[
+ shaped('小屋','0 -87 99 -8 83 8 71 -1 71 79 0 79'),
+ shaped('城堡','0 -43 17 -43 17 -22 33 -22 33 -70 44 -70 44 -56 55 -56 55 -70 70 -70 70 -56 81 -56 81 -70 92 -70 92 75 25 75 25 39 Q 25 15 0 15'),
+ shaped('寶塔','0 -102 6 -86 Q 21 -62 52 -58 43 -49 25 -48 25 -35 Q 51 -17 68 -20 61 -9 37 -7 37 10 Q 66 28 86 25 79 37 48 39 48 75 65 75 65 84 0 84'),
+ shaped('燈塔','0 -91 32 -68 27 -64 27 -39 37 -39 37 -32 25 -31 43 69 54 69 54 83 0 83',-14),
+ shaped('拱橋','0 -50 Q 47 -50 84 -30 103 -30 103 57 75 57 75 33 Q 69 -16 0 -16'),
+ shaped('火箭','0 -102 Q 43 -69 41 -9 70 31 72 69 37 51 31 63 16 63 0 97',23,[ellipse(13,13,-37)]),
+ shaped('飛機','0 -101 Q 14 -98 14 -65 15 -29 99 22 99 36 15 16 11 66 40 88 40 95 0 84',-27),
+ shaped('熱氣球','0 -96 Q 77 -99 77 -40 Q 80 3 35 40 19 58 19 64 23 64 19 87 0 87',0,[outline('0 39 22 39 10 59 0 59')]),
+ shaped('帆船','0 -102 4 -102 4 -87 66 18 4 18 4 30 89 28 64 66 0 70',0),
+ shaped('太空飛碟','0 -56 Q 46 -56 52 -17 Q 86 -11 108 13 Q 93 29 57 31 Q 43 51 0 51',-18)
+ ]},
+ {name:'對稱花紋',items:[
+ shaped('五角星',star(5,42),-14),
+ shaped('雪花',radial(72,i=>[100,87,71,78,64,43,33,43,64,78,71,87][i%12]),12),
+ shaped('新月','0 -62 Q 51 -63 83 -100 Q 110 -18 71 43 Q 42 86 0 90',70),
+ shaped('齒輪',radial(48,i=>[72,72,92,92,92,72][i%6]),0,[ellipse(31,31)]),
+ shaped('六瓣花',radial(144,(i,a)=>75+20*Math.cos(6*(a+Math.PI/2))),15,[ellipse(15,15)]),
+ shaped('愛心','0 -47 Q 41 -112 81 -72 Q 122 -26 74 25 0 95',-20),
+ shaped('圓拱窗花','0 -96 Q 66 -84 69 -14 69 79 0 79',0,[outline('0 -64 Q 17 -53 18 -18 0 -10'),outline('0 -6 17 -6 17 39 0 39').map(p=>pt(p.x+33,p.y+16)),outline('0 -6 17 -6 17 39 0 39').map(p=>pt(p.x-33,p.y+16))]),
+ shaped('十字花磚','0 -92 31 -92 31 -31 92 -31 92 31 31 31 31 92 0 92',28),
+ shaped('雙尖緞帶','0 -41 83 -41 69 0 83 41 0 41',-12),
+ shaped('八角星章',star(8,68),12,[radial(8,25)])
+ ]}
+];
+const questions=chapters.flatMap((chapter,group)=>chapter.items.map(item=>({...item,group})));
+function makeFigure(q){
+ const angle=q.deg*Math.PI/180;
+ if(q.radius)return {radius:q.radius,angle};
+ const contours=q.contours.map(ring=>ring.map(p=>rotate(p,angle)));
+ return {contours,vertices:contours.flat(),angle,total:area(contours[0])-contours.slice(1).reduce((sum,p)=>sum+area(p),0)};
+}
+const best=Array(questions.length).fill(null);
+const ctx=$('game').getContext('2d');
+let round=0,figure,phase='ready',pointer=null,A=null,B=null,showHint=false,score=0,start=0,raf=0;
+let width=0,height=0,scale=1,camera={x:0,y:0,k:1},target={x:0,y:0,k:1};
+const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
+function axis(a,b){const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy);return {a,x:-dy/len,y:dx/len}}
+function distance(p,l){return (p.x-l.a.x)*l.x+(p.y-l.a.y)*l.y}
+function mirror(p,l){const d=2*distance(p,l);return pt(p.x-d*l.x,p.y-d*l.y)}
+function area(poly){let sum=0;for(let i=0;i<poly.length;i++){const a=poly[i],b=poly[(i+1)%poly.length];sum+=a.x*b.y-a.y*b.x}return Math.abs(sum)/2}
+// Partition the overlap into vertical strips. Between successive vertices and
+// boundary crossings, each occupied interval has linear upper and lower edges.
+// Its midpoint height times the strip width is therefore its exact area.
+function edges(rings){
+ const list=[];
+ for(const ring of rings)for(let i=0;i<ring.length;i++){
+  const a=ring[i],b=ring[(i+1)%ring.length];
+  if(Math.abs(b.x-a.x)<1e-10)continue;
+  list.push({a,b,min:Math.min(a.x,b.x),max:Math.max(a.x,b.x),slope:(b.y-a.y)/(b.x-a.x)});
+ }
+ return list;
+}
+function ordinate(e,x){return e.a.y+(x-e.a.x)*e.slope}
+function crossingsAt(edges,x){
+ const ys=[];for(const e of edges)if(e.min<x&&x<e.max)ys.push(ordinate(e,x));
+ return ys.sort((a,b)=>a-b);
+}
+function polygonOverlap(f,l){
+ const reflected=f.contours.map(ring=>ring.map(p=>mirror(p,l)));
+ const original=edges(f.contours),copy=edges(reflected);
+ const cuts=f.vertices.map(p=>p.x).concat(reflected.flat().map(p=>p.x));
+ for(const a of original)for(const b of copy){
+  const lo=Math.max(a.min,b.min),hi=Math.min(a.max,b.max);
+  if(hi<=lo)continue;
+  const left=ordinate(a,lo)-ordinate(b,lo),right=ordinate(a,hi)-ordinate(b,hi);
+  if(left*right<0)cuts.push(lo+(hi-lo)*left/(left-right));
+ }
+ cuts.sort((a,b)=>a-b);
+ let common=0;
+ for(let i=1;i<cuts.length;i++){
+  const w=cuts[i]-cuts[i-1];if(w<1e-10)continue;
+  const x=cuts[i-1]+w/2,a=crossingsAt(original,x),b=crossingsAt(copy,x);
+  let j=0,k=0;
+  while(j+1<a.length&&k+1<b.length){
+   common+=w*Math.max(0,Math.min(a[j+1],b[k+1])-Math.max(a[j],b[k]));
+   if(a[j+1]<b[k+1])j+=2;else k+=2;
+  }
+ }
+ return common;
+}
+function overlap(f,l){
+ let common,total;
+ if(f.radius){
+  const r=f.radius,d=2*Math.abs(distance(pt(0,0),l));total=Math.PI*r*r;
+  common=d>=2*r?0:2*r*r*Math.acos(d/(2*r))-d*.5*Math.sqrt(Math.max(0,4*r*r-d*d));
+ }else{
+  total=f.total;common=polygonOverlap(f,l);
+ }
+ const raw=Math.max(0,Math.min(100,100*common/(2*total-common)));
+ return raw>100-1e-9?100:raw;
+}
+function displayValue(n){return n===100?'100.0':Math.min(99.9,n).toFixed(1)}
+function passes(value){return value!==null && Number(displayValue(value))>=95}
+function path(c,f){
+ c.beginPath();
+ if(f.radius)c.arc(0,0,f.radius,0,TAU);
+ else for(const ring of f.contours){ring.forEach((p,i)=>i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y));c.closePath()}
+}
+function randomGenerator(seed){return ()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296}}
+function landscape(){
+ const c=$('art').getContext('2d'),rnd=randomGenerator(1148);c.clearRect(0,0,width,height);
+ // Nested, irregular contours and two banks of hand-drawn fern fronds.
+ for(let side=0;side<2;side++){c.save();c.translate(side?width:0,side?0:height);if(side)c.rotate(Math.PI);
+  const size=Math.min(width*.35,height*.86);c.scale(size/260,size/260);
+  for(let i=0;i<12;i++){c.beginPath();const r=53+i*17;
+   for(let j=0;j<=90;j++){const a=j/90*TAU,rr=r*(1+.10*Math.sin(3*a+i*.1)+.06*Math.cos(5*a));const x=rr*Math.cos(a)*1.42-50,y=rr*Math.sin(a)*.82+10;j?c.lineTo(x,y):c.moveTo(x,y)}
+   c.strokeStyle='rgba(120,174,119,.09)';c.lineWidth=.9;c.stroke()
+  }
+  function fern(bx,by,len,lean,tone){
+   c.save();c.translate(bx,by);c.rotate(lean);
+   const bend=t=>len*.2*t*t;
+   c.beginPath();c.moveTo(0,0);c.quadraticCurveTo(0,-len/2,bend(1),-len);c.strokeStyle=tone;c.lineWidth=1.5;c.stroke();
+   for(let i=1;i<=15;i++){const t=i/16,x=bend(t),y=-len*t;
+    for(const sign of [-1,1]){const leaf=len*(.09+.14*Math.sin(Math.PI*t))*(1-t*.77)*(1+rnd()*.17);
+     c.beginPath();c.moveTo(x,y);c.quadraticCurveTo(x+sign*leaf*.62,y-leaf*.05,x+sign*leaf,y-leaf*.81);
+     c.quadraticCurveTo(x+sign*leaf*.26,y-leaf*.6,x,y);c.fillStyle=tone;c.fill()}
+   }c.restore()
+  }
+  fern(-6,11,165,.23,'#254b37');fern(6,14,143,.85,'#306044');fern(3,11,101,1.08,'#46805a');fern(25,20,76,.29,'#385f43');
+  c.restore()
+ }
+ for(let i=0;i<Math.max(65,width*.12);i++){const x=rnd()*width,y=rnd()*height,v=rnd(),r=.45+rnd()*1.35;
+  if(v>.76){const halo=c.createRadialGradient(x,y,0,x,y,r*6);halo.addColorStop(0,'rgba(203,241,133,.24)');halo.addColorStop(1,'rgba(173,237,132,0)');c.fillStyle=halo;c.fillRect(x-r*6,y-r*6,r*12,r*12)}
+  c.fillStyle=v>.76?'#a8c983':'rgba(139,193,151,.28)';c.beginPath();c.arc(x,y,r*.7,0,TAU);c.fill()
+ }
+}
+function idleShape(c){
+ path(c,figure);const g=c.createLinearGradient(-110,-100,95,92);g.addColorStop(0,'#94c577');g.addColorStop(.36,'#468d63');g.addColorStop(.75,'#286a52');g.addColorStop(1,'#174638');
+ c.fillStyle=g;c.shadowBlur=22;c.shadowColor='rgba(130,241,156,.33)';c.fill('evenodd');c.shadowBlur=0;
+ c.save();c.clip('evenodd');
+ // Small flecks give the translucent surface its mineral texture.
+ const rnd=randomGenerator(615);for(let i=0;i<310;i++){const x=rnd()*270-135,y=rnd()*240-120;c.fillStyle='rgba(220,255,199,'+(rnd()*.24+.04)+')';c.fillRect(x,y,.5+rnd()*.8,.7)}
+ c.restore();path(c,figure);const edge=c.createLinearGradient(-85,-85,83,80);edge.addColorStop(0,'#ecffbe');edge.addColorStop(.52,'#b6f6b4');edge.addColorStop(1,'#68bba0');c.strokeStyle=edge;c.lineWidth=1.9;c.stroke();
+}
+function transformFold(c,l,factor){
+ const xx=(factor-1)*l.x,yy=(factor-1)*l.y,k=l.a.x*l.x+l.a.y*l.y;
+ c.transform(1+xx*l.x,yy*l.x,xx*l.y,1+yy*l.y,-xx*k,-yy*k)
+}
+function painted(c,fill,edge){path(c,figure);c.fillStyle=fill;c.fill('evenodd');c.strokeStyle=edge;c.lineWidth=1.5;c.stroke()}
+function comparison(c,l,t){
+ painted(c,'#548e8d','#a1d2cc');const factor=Math.cos(Math.PI*t);
+ if(Math.abs(factor)<.001)return;
+ c.save();transformFold(c,l,factor);painted(c,'#bf87a5','#f2b9d1');c.restore();
+ c.save();path(c,figure);c.clip('evenodd');transformFold(c,l,factor);painted(c,'#b1de93','#d0f4b6');c.restore()
+}
+function line(c,a,b,color,dash,glow){
+ c.save();c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.lineWidth=(dash?1.6:2.6)/camera.k;c.setLineDash(dash?[7/camera.k,6/camera.k]:[]);c.strokeStyle=color;c.shadowColor=color;c.shadowBlur=glow;c.stroke();c.restore()
+}
+function endpoints(c,p,down){
+ c.save();const r=(down?23:9)/camera.k;const g=c.createRadialGradient(p.x,p.y,0,p.x,p.y,r);g.addColorStop(0,'rgba(229,255,198,.85)');g.addColorStop(.32,'rgba(191,255,157,.25)');g.addColorStop(1,'rgba(172,251,145,0)');c.fillStyle=g;c.fillRect(p.x-r,p.y-r,2*r,2*r);c.beginPath();c.arc(p.x,p.y,3/camera.k,0,TAU);c.fillStyle='#f2ffd8';c.fill();c.restore()
+}
+function fitMirror(l){
+ let bounds;
+ if(figure.radius){const m=mirror(pt(0,0),l),r=figure.radius;bounds=[pt(-r,-r),pt(r,r),pt(m.x-r,m.y-r),pt(m.x+r,m.y+r)]}
+ else bounds=[...figure.vertices,...figure.vertices.map(p=>mirror(p,l))];
+ const xs=bounds.map(p=>p.x),ys=bounds.map(p=>p.y),x1=Math.min(...xs),x2=Math.max(...xs),y1=Math.min(...ys),y2=Math.max(...ys);
+ if(Math.max(-x1,x2)*scale<width*.44&&Math.max(-y1,y2)*scale<(height-90)*.48)return {x:0,y:0,k:1};
+ return {x:(x1+x2)/2,y:(y1+y2)/2,k:Math.min(1,width*.83/(scale*(x2-x1)),(height-88)/(scale*(y2-y1)))};
+}
+function draw(now=performance.now()){
+ cancelAnimationFrame(raf);const c=ctx;c.clearRect(0,0,width,height);let t=0,elapsed=now-start;
+ const result=phase==='result';const l=A&&B&&(A.x!==B.x||A.y!==B.y)?axis(A,B):null;
+ if(result){const reduced=reduceMotion.matches,scoreT=reduced?1:Math.min(1,Math.max(0,elapsed/380));
+  $('score').textContent=displayValue(score*(1-(1-scoreT)**3));
+  const u=reduced?1:Math.min(1,Math.max(0,(elapsed-420)/840));t=u*u*(3-2*u);
+  camera={x:target.x*t,y:target.y*t,k:1+(target.k-1)*t};
+  $('legend').hidden=u===0;$('status').textContent=u<1?'正在對摺':score===100?'完全重合':passes(score)?'成功過關':'再試試看';
+ }
+ c.save();c.translate(width/2,height/2);c.scale(scale*camera.k,scale*camera.k);c.translate(-camera.x,-camera.y);
+ if(phase==='finished'){c.restore();return}
+ if(result&&l&&(t>0||reduceMotion.matches))comparison(c,l,t);else idleShape(c);
+ if(A&&B){if(result&&l){const s=(width+height)/scale/camera.k;
+   line(c,pt(A.x-l.y*s,A.y+l.x*s),pt(A.x+l.y*s,A.y-l.x*s),'rgba(213,241,202,.55)',true,0)}
+  line(c,A,B,'#e4ffbd',false,11);endpoints(c,A,false);endpoints(c,B,phase==='drawing')}
+ if(showHint){const a=rotate(pt(0,-157),figure.angle),b=rotate(pt(0,157),figure.angle);line(c,a,b,'#ffdb8a',true,3)}
+ if(result&&passes(score)&&!reduceMotion.matches&&elapsed>1260&&elapsed<1860){
+  const p=(elapsed-1260)/600;c.beginPath();c.arc(0,0,111+p*49,0,TAU);c.lineWidth=2*(1-p)+.3;c.strokeStyle='rgba(210,255,169,'+(1-p)*.6+')';c.stroke()}
+ c.restore();
+ if(result&&!reduceMotion.matches&&elapsed<(passes(score)?1865:1270))raf=requestAnimationFrame(draw)
+}
+function reset(){
+ phase='ready';pointer=null;A=B=null;camera={x:0,y:0,k:1};showHint=false;syncHint();$('retry').disabled=true;
+ $('score').textContent='—';$('status').textContent='準備落筆';$('legend').hidden=true;cue('按住並拖出一條直線');note();draw()
+}
+function note(){ $('note').textContent=showHint?'金色虛線是其中一條正確對稱軸。':'找出任何一條對稱軸即可。重合率達 95% 就過關。' }
+function cue(msg){$('cue').hidden=!msg;$('cueText').textContent=msg}
+function syncHint(){$('hint').setAttribute('aria-pressed',String(showHint));$('hint').querySelector('span').textContent=showHint?'隱藏正確對稱軸':'看一條正確對稱軸'}
+function buildMenu(){
+ let n=0;
+ for(const chapter of chapters){
+  const group=document.createElement('optgroup');group.label=chapter.name;
+  for(const q of chapter.items){const option=new Option(String(n+1).padStart(2,'0')+'　'+q.name,n);group.append(option);n++}
+  $('choose').append(group);
+ }
+ $('choose').onchange=()=>{round=Number($('choose').value);$('hint').disabled=false;question()};
+}
+function progress(){
+ const option=$('choose').options[round];
+ option.textContent=String(round+1).padStart(2,'0')+'　'+questions[round].name+(passes(best[round])?'　✓':'');
+}
+function question(){
+ $('instruction').textContent='畫一條直線，讓圖形對摺後完全重合。';$('scoreName').textContent='對稱重合率';$('unit').textContent='%';$('announce').textContent='';$('board').classList.remove('complete');
+ const q=questions[round];figure=makeFigure(q);$('title').textContent=q.name;$('choose').value=String(round);$('chapter').textContent=chapters[q.group].name;$('num').textContent=String(round+1).padStart(2,'0');$('progress').textContent=(round+1)+' / '+questions.length;
+ $('next').querySelector('span').textContent=round===questions.length-1?'完成挑戰':'下一題';progress();reset()
+}
+function resize(){
+ if(phase==='drawing')reset();const r=$('game').getBoundingClientRect();width=r.width;height=r.height;
+ const dpr=Math.min(window.devicePixelRatio||1,2);
+ for(const id of ['game','art']){const c=$(id);c.width=Math.round(width*dpr);c.height=Math.round(height*dpr);c.getContext('2d').setTransform(c.width/width,0,0,c.height/height,0,0)}
+ scale=Math.min(width/360,(height-68)/248,1.65);landscape();if(phase==='result')target=fitMirror(axis(A,B));draw()
+}
+function position(e){const r=$('game').getBoundingClientRect();return pt((e.clientX-r.left-width/2)/scale,(e.clientY-r.top-height/2)/scale)}
+const game=$('game');
+game.addEventListener('pointerdown',e=>{
+ if(pointer!==null||!e.isPrimary||e.button!==0||phase==='finished')return;
+ e.preventDefault();reset();pointer=e.pointerId;game.setPointerCapture(pointer);A=B=position(e);phase='drawing';cue('');$('status').textContent='正在畫線';draw()
+});
+game.addEventListener('pointermove',e=>{if(e.pointerId!==pointer)return;e.preventDefault();B=position(e);draw()});
+game.addEventListener('pointerup',e=>{
+ if(e.pointerId!==pointer)return;e.preventDefault();B=position(e);pointer=null;
+ if(Math.hypot(B.x-A.x,B.y-A.y)*scale<20){reset();cue('線太短了，請再拖長一點。');$('announce').textContent=$('cueText').textContent;return}
+ const l=axis(A,B);score=overlap(figure,l);best[round]=Math.max(best[round]??0,score);phase='result';target=fitMirror(l);start=performance.now();$('retry').disabled=false;
+ $('announce').textContent='對稱重合率 '+displayValue(score)+'%。'+(passes(score)?'成功過關。':'再試試看。');progress();draw()
+});
+function cancel(e){if(e.pointerId===pointer)reset()}
+game.addEventListener('pointercancel',cancel);game.addEventListener('lostpointercapture',cancel);
+game.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
+$('retry').onclick=reset;
+$('hint').onclick=()=>{if(phase==='drawing')return;showHint=!showHint;syncHint();note();draw()};
+$('next').onclick=()=>{
+ if(phase==='finished'){round=0;best.fill(null);$('choose').replaceChildren();buildMenu();$('hint').disabled=false;question();return}
+ if(round<questions.length-1){round++;question();return}
+ reset();phase='finished';const count=best.filter(passes).length;
+ $('status').textContent='挑戰完成';cue('本輪練習完結');$('board').classList.add('complete');$('scoreName').textContent='已過關';$('score').textContent=count;$('unit').textContent='/ '+questions.length;$('instruction').textContent='你可以重新挑戰，再找出其他對稱軸。';$('announce').textContent=$('cueText').textContent;
+ $('hint').disabled=true;$('next').querySelector('span').textContent='重新挑戰';$('title').textContent='挑戰完成';$('note').textContent='按「重新挑戰」，再練習一次。';draw()
+};
+buildMenu();question();resize();new ResizeObserver(resize).observe($('board'));
+</script>
+</body></html>
